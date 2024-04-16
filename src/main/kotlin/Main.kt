@@ -1,71 +1,55 @@
-// Import statements
+
 import org.apache.poi.ss.usermodel.Cell
 import org.apache.poi.ss.usermodel.CellType
-import org.apache.poi.ss.usermodel.Row
 import org.apache.poi.xssf.usermodel.XSSFSheet
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import java.io.File
 import java.io.FileInputStream
+import java.io.FileOutputStream
 
 fun main() {
+    try {
+        val file = File("AB.xlsx")
+        val fis = FileInputStream(file)
+        val workbook = XSSFWorkbook(fis)
+        val sheet: XSSFSheet = workbook.getSheetAt(0)
 
-            // Try block to check for exceptions
-            try {
+        // Iterate through each row
+        for (row in sheet) {
+            val cellIterator = row.cellIterator()
+            var concatenatedValue = "" // Initialize an empty string
 
-                val file = File("AB.xlsx")
-                FileInputStream(file)
+            while (cellIterator.hasNext()) {
+                val cell: Cell = cellIterator.next()
 
-                // Create Workbook instance holding reference to
-                // .xlsx file
-                val workbook = XSSFWorkbook(file)
-
-                // Get first/desired sheet from the workbook
-                val sheet: XSSFSheet = workbook.getSheetAt(0)
-
-
-                // Iterate through each rows one by one
-                val rowIterator: Iterator<Row> = sheet.iterator()
-
-                var sum = 0.0 // Initialize the sum variable
-
-                while (rowIterator.hasNext()) {
-                    val row: Row = rowIterator.next()
-                    val cellIterator: Iterator<Cell> = row.cellIterator()
-
-                    while (cellIterator.hasNext()) {
-                        val cell: Cell = cellIterator.next()
-
-                        when (cell.cellType) {
-                            CellType.STRING -> {
-                                val cellValue = cell.stringCellValue
-                                // Handle string cell value
-                                print("$cellValue ")
-                            }
-                            CellType.NUMERIC -> {
-                                val numericValue = cell.numericCellValue
-                                // Handle numeric cell value
-                                print("$numericValue ")
-                                sum += numericValue // Add to the sum
-                            }
-                            else -> {
-                                // Handle other cell types (e.g., BOOLEAN, FORMULA, BLANK, etc.)
-                                print("Unknown cell type ")
-                            }
-                        }
+                when (cell.cellType) {
+                    CellType.STRING -> {
+                        val cellValue = cell.stringCellValue;
                     }
-
-                    println("") // Print a newline after each row
-                }
-
-                println("Sum of numeric values: $sum") // Print the total sum
-
-                file.inputStream().use {
-                    // Close the input stream (file) automatically
+                    CellType.NUMERIC -> {
+                        val numericValue = cell.numericCellValue.toInt()
+                        val charValue = ('A' + numericValue - 1).toChar() // Convert numeric value to corresponding character
+                        concatenatedValue += "$numericValue$charValue " // Append the combined value
+                    }
+                    else -> {
+                        // Handle other cell types if needed
+                    }
                 }
             }
 
-            // Catch block to handle exceptions
-            catch (e: Exception) {
-                e.printStackTrace()
-            }
+            // Set the concatenated value in the third column (index 2)
+            val thirdCell = row.createCell(2)
+            thirdCell.setCellValue(concatenatedValue)
         }
+
+        // Save the modified workbook
+        val outputStream = FileOutputStream("Modified_AB.xlsx")
+        workbook.write(outputStream)
+        workbook.close()
+        fis.close()
+
+        println("Concatenated values saved to Modified_AB.xlsx")
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+}
